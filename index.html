@@ -209,7 +209,7 @@ section.band.alt{background:var(--band)}
 form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
 label,.lbl{font-size:14px;font-weight:500;display:block;margin-bottom:6px}
 .hint{font-weight:400;color:var(--faint)}
-input[type=email],input[type=number],textarea{width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+input[type=email],input[type=number],input[type=text],textarea{width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
 textarea{min-height:84px;resize:vertical}
 input:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-bg)}
 .choices{display:flex;flex-wrap:wrap;gap:8px}
@@ -219,6 +219,7 @@ input:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0
 .choice input:checked + span{border-color:var(--brand);background:var(--brand-bg);color:var(--brand-ink)}
 .choice input:focus-visible + span{outline:2px solid var(--brand);outline-offset:2px}
 .submit-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.other{margin-top:10px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 .privacy{margin:0;font-size:13px;color:var(--faint)}
 .privacy a,footer a{color:inherit}
@@ -452,6 +453,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
             <label class="choice"><input type="radio" id="r-3" name="role" value="Business / Ops"><span>Business / Ops</span></label>
             <label class="choice"><input type="radio" id="r-4" name="role" value="Other"><span>Other</span></label>
           </div>
+          <input class="other" id="role-other" name="role_other" type="text" placeholder="What's your role? (optional)" aria-label="Your role (optional)" hidden>
         </div>
         <div>
           <span class="lbl" id="agent-l">Which agent do you use?</span>
@@ -478,6 +480,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
             <label class="choice"><input type="checkbox" id="t-10" name="tools" value="GitLab"><span>GitLab</span></label>
             <label class="choice"><input type="checkbox" id="t-11" name="tools" value="Other"><span>Other</span></label>
           </div>
+          <input class="other" id="tools-other" name="tools_other" type="text" placeholder="Which other tools? (optional)" aria-label="Other tools (optional)" hidden>
         </div>
         <div>
           <label for="problem">What's the biggest problem with this today? <span class="hint">(optional)</span></label>
@@ -620,8 +623,22 @@ const VISIT = (function () {
 })();
 
 const form = document.getElementById("waitlist");
+
+// "Other" reveals a short optional text field for the role or the tools.
+const roleOther = document.getElementById("role-other");
+const toolsOther = document.getElementById("tools-other");
+form.addEventListener("change", (e) => {
+  if (e.target.name === "role") roleOther.hidden = e.target.value !== "Other";
+  if (e.target.id === "t-11") toolsOther.hidden = !e.target.checked;
+});
 const statusEl = document.getElementById("status");
 const button = document.getElementById("submit");
+
+// "Other" plus typed text is saved as "Other: <text>" in the same column.
+function withOther(value, input) {
+  const t = input.value.trim();
+  return value === "Other" && t ? "Other: " + t : value;
+}
 
 function show(msg, kind) {
   statusEl.textContent = msg;
@@ -639,9 +656,9 @@ form.addEventListener("submit", async (e) => {
   const data = {
     email,
     team_size: (form.querySelector('input[name="team_size"]:checked') || {}).value || "",
-    role: (form.querySelector('input[name="role"]:checked') || {}).value || "",
+    role: withOther((form.querySelector('input[name="role"]:checked') || {}).value || "", roleOther),
     agent: (form.querySelector('input[name="agent"]:checked') || {}).value || "",
-    tools: [...form.querySelectorAll('input[name="tools"]:checked')].map((x) => x.value).join(", "),
+    tools: [...form.querySelectorAll('input[name="tools"]:checked')].map((x) => withOther(x.value, toolsOther)).join(", "),
     problem: form.problem.value.trim(),
     visit_id: VISIT.id,
     ref: new URLSearchParams(location.search).get("ref") || "",
@@ -663,6 +680,8 @@ form.addEventListener("submit", async (e) => {
       : { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(data) });
     if (!google && !res.ok) throw new Error(String(res.status));
     form.reset();
+    roleOther.hidden = true;
+    toolsOther.hidden = true;
     VISIT.markSignedUp();
     show("You're on the list. We'll email you the setup guide.", "ok");
   } catch (err) {
