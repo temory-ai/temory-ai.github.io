@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>temory · Keep your coding agent on your team's latest decisions</title>
+<meta name="description" content="temory keeps your team's AI work on its latest decisions. Your coding agent cites your team's current decisions from Slack, Jira, Confluence, GitHub, Linear and other tools. Works in Claude Code or Codex with any model.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="canonical" href="https://temory-ai.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://temory-ai.github.io/">
+<meta property="og:title" content="temory · Keep your coding agent on your team's latest decisions">
+<meta property="og:description" content="temory brings every change in Slack, Jira, Confluence and GitHub into your Claude Code or Codex session, so your agent never builds on a rule your team already dropped.">
+<meta property="og:image" content="https://temory-ai.github.io/og.png">
+<meta property="og:image:width" content="2400">
+<meta property="og:image:height" content="1260">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="temory · Keep your coding agent on your team's latest decisions">
+<meta name="twitter:description" content="Your team's latest decisions, inside your agent session. Join the waitlist.">
+<meta name="twitter:image" content="https://temory-ai.github.io/og.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 68 68'%3E%3Cg transform='translate(2 2)'%3E%3Cpath fill='%2327DCA0' d='M13 26C6 26 3 22 4 17c1-5 5-8 11-8C18 1 29 0 36 6c8-3 18 1 19 9 8 0 10 11 3 15-6 3-11 1-16-1-10-5-17-3-29-3Z'/%3E%3Cpath fill='%2313AD83' d='M10 30c13-4 23-3 34 2 6 3 12 3 15 1 3 6-1 12-8 13-8 1-14-5-24-6-7 0-12 3-18 2-9-1-10-10 1-12Z'/%3E%3Cpath fill='%23087B66' d='M13 46c7-4 18-3 25 1 6 4 9 4 13 3-1 8-7 13-15 12-8 0-8-5-14-6-5-1-9 1-13-2-3-3-1-6 4-8Z'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one centered column. Hero with a live-looking session, three steps, three facts, waitlist form. */
+:root{
+  --bg:#ffffff; --panel:#ffffff; --sub:#eff2f0; --line:#e1e6e3; --text:#131915; --muted:#5d6a63; --faint:#637069;
+  --brand:#13AD83; --brand-ink:#087B66; --brand-bg:#e3f6ee; --brand-light:#27DCA0;
+  --warn:#9a6300; --warn-bg:#fff4d9; --warn-line:#f1d48f;
+  --term:#101512; --term-text:#dce7e1; --term-muted:#7f9188;
+  --band:#f4f6f5; --stage:none;
+  --font:"Geist", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --mono:"Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r:12px; --shadow:0 1px 2px rgba(15,30,22,.05),0 10px 30px rgba(15,30,22,.07);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c100e; --panel:#131916; --sub:#18201c; --line:#232d28; --text:#e7efea; --muted:#9aaba2; --faint:#8a9a91;
+  --brand:#27DCA0; --brand-ink:#6EF0B4; --brand-bg:#10271e; --brand-light:#27DCA0;
+  --warn:#f0b43c; --warn-bg:#30260f; --warn-line:#5a4614;
+  --term:#080b09; --term-text:#dce7e1; --term-muted:#7f9188;
+  --band:#111714; --stage:none;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c100e; --panel:#131916; --sub:#18201c; --line:#232d28; --text:#e7efea; --muted:#9aaba2; --faint:#8a9a91;
+  --brand:#27DCA0; --brand-ink:#6EF0B4; --brand-bg:#10271e; --brand-light:#27DCA0;
+  --warn:#f0b43c; --warn-bg:#30260f; --warn-line:#5a4614;
+  --term:#080b09; --term-text:#dce7e1; --term-muted:#7f9188;
+  --band:#111714; --stage:none;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;padding-block:8px;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid transparent;transition:border-color .2s}
+header.scrolled{border-bottom-color:var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
+html{scroll-padding-top:56px}
+header .btn{padding:7px 14px;font-size:14px}
+header .mark{font-size:17px}
+header .mark svg{width:24px;height:24px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:600;font-size:19px;letter-spacing:-.01em}
+.mark svg{width:28px;height:28px}
+.mark .tld{color:var(--brand)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:500;font-size:15px;border-radius:10px;padding:10px 16px;text-decoration:none;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s}
+.btn.primary{background:var(--text);color:var(--bg)}
+.btn.primary:hover{background:var(--brand-ink)}
+.btn.ghost{border-color:var(--line);background:var(--panel)}
+.btn.ghost:hover{border-color:var(--brand)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1fr;gap:40px;padding-block:48px 72px}
+@media (min-width:900px){.hero{grid-template-columns:1fr 1.05fr;align-items:center;gap:56px;padding-block:64px 96px}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--brand-ink);background:var(--brand-bg);border-radius:99px;padding:4px 12px;letter-spacing:.01em}
+h1{font-size:clamp(34px,5.2vw,52px);line-height:1.08;letter-spacing:-.03em;margin:0 0 18px;font-weight:600;text-wrap:balance}
+h1 em{font-style:normal;color:var(--brand)}
+.lede{font-size:18px;color:var(--muted);max-width:34em;margin:0 0 28px}
+.lede{margin-bottom:14px}
+.lede.promise{color:var(--text);font-weight:600}
+.details{font-size:15px;color:var(--faint);max-width:36em;margin:0 0 28px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.cta small{color:var(--faint);font-size:13.5px}
+.hero > div{min-width:0}
+
+/* chat mock: only the chat pane of the temory app. Speakers: You (right), temory and the agent (left). */
+.chat{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;min-width:0;display:flex;flex-direction:column}
+.chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.chat-title{font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-shrink:0}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;border:1px solid var(--line);background:var(--sub);border-radius:8px;padding:3px 9px;white-space:nowrap}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--brand)}
+.chat-body{padding:14px;display:flex;flex-direction:column;justify-content:flex-start;height:440px;overflow:hidden}
+@media (max-width:520px){.chat-body{height:540px}}
+.turn{display:flex;flex-direction:column;gap:4px;max-width:88%;min-width:0;padding-bottom:10px}
+.turn.me{align-self:flex-end;align-items:flex-end}
+.turn.them{align-self:flex-start;width:88%}
+.name{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);padding-inline:4px}
+.name svg{width:14px;height:14px}
+.name .av{width:14px;height:14px;border-radius:50%;background:var(--text);color:var(--bg);font-size:8px;display:grid;place-items:center;font-weight:600}
+.bubble{border-radius:15px;padding:9px 13px;font-size:14.5px;line-height:1.5;color:var(--text)}
+.me .bubble{background:var(--text);color:var(--bg);border-bottom-right-radius:5px}
+.them .bubble{background:var(--sub);border:1px solid var(--line);border-bottom-left-radius:5px}
+.srow{display:flex;gap:8px;align-items:center;font-size:14px}
+.srow .ic{width:16px;text-align:center;font-weight:600;color:var(--brand-ink);flex-shrink:0}
+.srow.warn{padding-top:5px}
+.srow.warn .ic{color:var(--warn)}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.alert-wrap{padding-top:8px}
+.alert-card{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.alert-card .t{font-weight:600;color:var(--warn)}
+.alert-card .src{font-size:12.5px;color:var(--muted);margin-top:2px}
+.composer{margin:0 14px 14px;border:1px solid var(--line);border-radius:12px;padding:8px 10px 8px 12px;display:flex;align-items:center;gap:10px;color:var(--faint);font-size:14px}
+.composer .send{margin-left:auto;width:26px;height:26px;border-radius:8px;background:var(--text);color:var(--bg);display:grid;place-items:center;font-size:13px;flex-shrink:0}
+.example{font-size:12px;color:var(--faint);margin-top:10px;text-align:right}
+/* reveal: each part grows open (rows 0fr to 1fr) so a bubble expands as content arrives. At rest, everything is open. */
+.reveal{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .4s ease, opacity .35s ease}
+.reveal > .in{min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.chat.playing .reveal:not(.on){grid-template-rows:0fr;opacity:0}
+.chat-body{transition:opacity .4s ease}
+.chat-body.fade{opacity:0}
+.chip .model{transition:opacity .3s ease}
+.srow .wait,.srow .wait-t{display:none}
+.chat.playing .srow:not(.ticked) .done,.chat.playing .srow:not(.ticked) .done-t{display:none}
+.chat.playing .srow:not(.ticked) .wait{display:inline-block}
+.chat.playing .srow:not(.ticked) .wait-t{display:inline;color:var(--muted)}
+/* whole messages fade in with a small rise, like a chat app; only the parts inside temory's bubble grow open */
+.reveal.pop{display:block;opacity:1;transition:none}
+.chat.playing .reveal.pop:not(.on){display:none}
+.chat.playing .reveal.pop.on{animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chat.reset .reveal,.chat.reset .model{transition:none}
+@media (prefers-reduced-motion: reduce){.reveal,.chat-body{transition:none}.spin,.chat.playing .reveal.pop.on{animation:none}}
+/* sections */
+section.band{padding-block:72px;border-top:1px solid var(--line)}
+h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.02em;line-height:1.15;margin:0 0 12px;font-weight:600;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 36px;max-width:40em}
+section.band.alt{background:var(--band)}
+.rows{display:flex;flex-direction:column;gap:96px;margin-top:56px}
+@media (max-width:859px){.rows{gap:64px;margin-top:40px}}
+.row{display:grid;grid-template-columns:1fr;gap:28px;align-items:center}
+@media (min-width:860px){.row{grid-template-columns:1fr 1fr;gap:64px}.row.flip .copy{order:2}}
+.row > *{min-width:0}
+.copy .n{display:inline-flex;align-items:center;gap:10px;font-size:15px;font-weight:600;color:var(--brand-ink)}
+.copy .n b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--brand-bg);color:var(--brand-ink);font-family:var(--mono);font-size:13px;font-weight:500}
+.copy h3{margin:14px 0 12px;font-size:clamp(26px,3vw,32px);line-height:1.15;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.copy p{margin:0;color:var(--muted);font-size:16.5px;max-width:28em}
+.stage{padding:0}
+.alt .win{box-shadow:0 1px 2px rgba(15,30,22,.06),0 18px 40px rgba(15,30,22,.10)}
+.soon{font-family:var(--font);font-size:11.5px;font-weight:500;color:var(--warn);background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:99px;padding:1px 8px}
+/* small product windows */
+.win{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.win-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);min-width:0}
+.win-title{font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.win-body{padding:16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.who-line{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+.who-line svg,.c-head svg{width:15px;height:15px;flex-shrink:0}
+.who-line b,.c-head b{color:var(--text)}
+.note-group{border:1px solid var(--line);background:var(--sub);border-radius:10px;padding:8px 11px;display:flex;flex-direction:column;gap:3px}
+.ng-t{font-weight:600;font-size:13.5px}
+.ng-l{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-left:22px}
+.ng-l.dim,.f-l.dim{color:var(--muted)}
+.src{font-size:12.5px;color:var(--faint);white-space:nowrap}
+.pr-state{font-size:11.5px;font-weight:600;border-radius:99px;padding:2px 9px;color:#fff;flex-shrink:0}
+.pr-state.open{background:#1f883d}
+.pr-state.merged{background:#8250df}
+.comment{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.c-head{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);background:var(--sub);padding:8px 11px;border-bottom:1px solid var(--line)}
+.c-body{padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.c-title{font-weight:600;font-size:14.5px}
+.c-sub{font-weight:600;font-size:13px;color:var(--muted)}
+.c-item{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-left:14px;position:relative}
+.c-item::before{content:"·";position:absolute;left:3px;color:var(--muted)}
+.flag{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:3px}
+.f-t{font-weight:600;color:var(--warn)}
+/* window steps: at rest everything shows; when a window scrolls into view it plays once */
+.win.playing [data-step]{opacity:0;transform:translateY(6px)}
+.win.playing [data-step].on{opacity:1;transform:none;transition:opacity .35s ease, transform .35s ease}
+.roles{display:grid;grid-template-columns:1fr;gap:16px}
+@media (min-width:640px){.roles{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1000px){.roles{grid-template-columns:repeat(4,1fr)}}
+.role{border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:8px;min-width:0;background:var(--panel)}
+.r-k{font-size:13px;font-weight:600;color:var(--brand-ink)}
+.role h3{margin:0;font-size:17px;line-height:1.3;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.role p{margin:0;color:var(--muted);font-size:14.5px;flex:1}
+.r-q{font-family:var(--mono);font-size:12.5px;color:var(--text);background:var(--sub);border-radius:8px;padding:8px 10px;margin-top:6px}
+.faq{display:grid;grid-template-columns:1fr;gap:24px 48px;margin-top:8px}
+@media (min-width:760px){.faq{grid-template-columns:repeat(2,1fr)}}
+.qa h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.qa p{margin:0;color:var(--muted);font-size:15.5px;max-width:34em}
+.facts{display:grid;grid-template-columns:1fr;gap:28px}
+@media (min-width:760px){.facts{grid-template-columns:repeat(3,1fr)}}
+.fact h3{margin:0 0 6px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.fact p{margin:0;color:var(--muted);font-size:15.5px}
+.fact .k{font-family:var(--mono);font-size:12px;color:var(--brand-ink);letter-spacing:.02em;display:block;margin-bottom:8px}
+
+/* join */
+.join{display:grid;grid-template-columns:1fr;gap:36px}
+@media (min-width:900px){.join{grid-template-columns:.9fr 1.1fr;gap:56px}}
+.join > div{min-width:0}
+.note{color:var(--muted);font-size:15px}
+.note ul{padding-left:18px;margin:12px 0 0;display:flex;flex-direction:column;gap:6px}
+form{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow)}
+label,.lbl{font-size:14px;font-weight:500;display:block;margin-bottom:6px}
+.hint{font-weight:400;color:var(--faint)}
+input[type=email],input[type=number],textarea{width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-bg)}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;inset:0}
+.choice span{display:inline-block;font-size:14px;border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 13px;cursor:pointer}
+.choice input:checked + span{border-color:var(--brand);background:var(--brand-bg);color:var(--brand-ink)}
+.choice input:focus-visible + span{outline:2px solid var(--brand);outline-offset:2px}
+.submit-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.privacy{margin:0;font-size:13px;color:var(--faint)}
+.privacy a,footer a{color:inherit}
+.founders{margin:18px 0 0;font-size:15px;color:var(--text)}
+.status{font-size:14px;color:var(--muted)}
+.status.ok{color:var(--brand-ink)}
+.status.err{color:var(--warn)}
+
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--faint);font-size:13.5px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="mark" href="#top" aria-label="temory.ai home">
+      <svg viewBox="0 0 68 68" aria-hidden="true"><g transform="translate(2 2)"><path fill="#27DCA0" d="M13 26C6 26 3 22 4 17c1-5 5-8 11-8C18 1 29 0 36 6c8-3 18 1 19 9 8 0 10 11 3 15-6 3-11 1-16-1-10-5-17-3-29-3Z"/><path fill="#13AD83" d="M10 30c13-4 23-3 34 2 6 3 12 3 15 1 3 6-1 12-8 13-8 1-14-5-24-6-7 0-12 3-18 2-9-1-10-10 1-12Z"/><path fill="#087B66" d="M13 46c7-4 18-3 25 1 6 4 9 4 13 3-1 8-7 13-15 12-8 0-8-5-14-6-5-1-9 1-13-2-3-3-1-6 4-8Z"/></g></svg>
+      <span>temory<span class="tld">.ai</span></span>
+    </a>
+    <a class="btn primary" href="#join">Join the waitlist</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero" id="hero">
+    <div>
+      <h1>Keeps your team's AI work on its <em>latest decisions</em>.</h1>
+      <p class="lede">Your team's decisions change in tools like Slack and Jira while you're heads-down in your agent sessions. Your agent only sees what you paste in or tell it to fetch through MCP.</p>
+      <p class="lede promise">temory brings every change into your session, with its source, so your agent never builds on a rule your team already dropped.</p>
+      <p class="details">Runs as a plugin for Claude Code or Codex, with whichever model you like. Reads Slack, Jira, Confluence, GitHub, Linear and other tools.</p>
+      <div class="cta">
+        <a class="btn primary" href="#join">Join the waitlist</a>
+        <small>For engineers, PMs, data teams and anyone who works in Claude Code or Codex.</small>
+      </div>
+    </div>
+
+    <div>
+      <div class="chat" id="chat" role="img" aria-label="Example chat: you ask for a 30-day metric, temory reads the team's decisions and alerts that the rule changed to 90 days, and the agent asks before writing code.">
+        <div class="chat-head">
+          <span class="chat-title">Churn report</span>
+          <span class="chips"><span class="chip"><i class="dot"></i><span class="model">Claude Code</span></span><span class="chip">Team decisions on</span></span>
+        </div>
+        <div class="chat-body" id="chat-body">
+          <div class="reveal pop" data-at="1"><div class="in"><div class="turn me">
+            <span class="name">You</span>
+            <div class="bubble">Compute 30-day active customers for the churn report.</div>
+          </div></div></div>
+          <div class="reveal pop" data-at="2"><div class="in"><div class="turn them">
+            <span class="name"><svg viewBox="0 0 68 68" aria-hidden="true"><g transform="translate(2 2)"><path fill="#27DCA0" d="M13 26C6 26 3 22 4 17c1-5 5-8 11-8C18 1 29 0 36 6c8-3 18 1 19 9 8 0 10 11 3 15-6 3-11 1-16-1-10-5-17-3-29-3Z"/><path fill="#13AD83" d="M10 30c13-4 23-3 34 2 6 3 12 3 15 1 3 6-1 12-8 13-8 1-14-5-24-6-7 0-12 3-18 2-9-1-10-10 1-12Z"/><path fill="#087B66" d="M13 46c7-4 18-3 25 1 6 4 9 4 13 3-1 8-7 13-15 12-8 0-8-5-14-6-5-1-9 1-13-2-3-3-1-6 4-8Z"/></g></svg>temory</span>
+            <div class="bubble">
+              <div class="srow" data-tick="3"><span class="ic"><span class="done">✓</span><span class="wait spin"></span></span><span><span class="done-t">Read your team's latest decisions</span><span class="wait-t">Reading your team's latest decisions…</span></span></div>
+              <div class="reveal" data-at="4"><div class="in"><div class="srow warn"><span class="ic">!</span><span>Your request conflicts with 1 decision</span></div></div></div>
+              <div class="reveal" data-at="5"><div class="in"><div class="alert-wrap"><div class="alert-card">
+                <span class="t">⚠ Team decision changed</span>
+                <span>Now: active customer = <b>90 days</b></span>
+                <span>Replaces: 30 days</span>
+                <span class="src">Slack #data-team · Oct 3</span>
+              </div></div></div></div>
+            </div>
+          </div></div></div>
+          <div class="reveal pop" data-at="6"><div class="in"><div class="turn them">
+            <span class="name"><span class="av">AI</span><span class="model">Claude Code</span></span>
+            <div class="bubble">Before I write this: the team moved the active-customer window from 30 to 90 days on Oct 3. Should I use 90 days?</div>
+          </div></div></div>
+        </div>
+        <div class="composer"><span>Ask anything about this project…</span><span class="send" aria-hidden="true">↑</span></div>
+      </div>
+      <div class="example">Example session</div>
+    </div>
+  </div>
+
+  <section class="band alt" id="how">
+    <div class="wrap">
+      <h2>Your decisions follow the work</h2>
+      <p class="sub">From the session to the PR to long after merge, temory keeps the work tied to what your team decided.</p>
+      <div class="rows">
+
+        <div class="row">
+          <div class="copy">
+            <span class="n"><b>01</b>In the session</span>
+            <h3>Changes come to you</h3>
+            <p>When a teammate changes a decision, moves a ticket or edits a wiki page, you see it in your session at your next prompt, with the source. If a request breaks a current decision, your agent stops and asks first.</p>
+          </div>
+          <div class="stage">
+            <div class="win" data-anim role="img" aria-label="Example: temory shows three updates in the session: a changed decision, a new decision and a Jira status change, each with its source.">
+              <div class="win-head"><span class="win-title">Session · churn-report</span></div>
+              <div class="win-body">
+                <div class="who-line"><svg viewBox="0 0 68 68" aria-hidden="true"><g transform="translate(2 2)"><path fill="#27DCA0" d="M13 26C6 26 3 22 4 17c1-5 5-8 11-8C18 1 29 0 36 6c8-3 18 1 19 9 8 0 10 11 3 15-6 3-11 1-16-1-10-5-17-3-29-3Z"/><path fill="#13AD83" d="M10 30c13-4 23-3 34 2 6 3 12 3 15 1 3 6-1 12-8 13-8 1-14-5-24-6-7 0-12 3-18 2-9-1-10-10 1-12Z"/><path fill="#087B66" d="M13 46c7-4 18-3 25 1 6 4 9 4 13 3-1 8-7 13-15 12-8 0-8-5-14-6-5-1-9 1-13-2-3-3-1-6 4-8Z"/></g></svg><b>temory</b><span>3 updates since your last session</span></div>
+                <div class="note-group" data-step>
+                  <div class="ng-t">🔁 Decision changed</div>
+                  <div class="ng-l"><span>now: active customer = <b>90 days</b></span><span class="src">Slack #data-team · Oct 3</span></div>
+                  <div class="ng-l dim"><span>replaces: 30 days</span></div>
+                </div>
+                <div class="note-group" data-step>
+                  <div class="ng-t">🆕 New decision</div>
+                  <div class="ng-l"><span>coupon refunds restore the coupon</span><span class="src">Jira DATA-130</span></div>
+                </div>
+                <div class="note-group" data-step>
+                  <div class="ng-t">📋 Status changed</div>
+                  <div class="ng-l"><span>DATA-412 status In Progress → Done</span><span class="src">Jira</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row flip">
+          <div class="copy">
+            <span class="n"><b>02</b>In the PR</span>
+            <h3>The why is in the PR</h3>
+            <p>temory comments the decisions your change relied on, each linked to the Slack thread, ticket or doc where the team made it.</p>
+          </div>
+          <div class="stage">
+            <div class="win" data-anim role="img" aria-label="Example: a pull request comment from temory listing the team decisions the change followed, each with its source.">
+              <div class="win-head"><span class="pr-state open">Open</span><span class="win-title">#218 Add 90-day churn report</span></div>
+              <div class="win-body">
+                <div class="comment" data-step>
+                  <div class="c-head"><svg viewBox="0 0 68 68" aria-hidden="true"><g transform="translate(2 2)"><path fill="#27DCA0" d="M13 26C6 26 3 22 4 17c1-5 5-8 11-8C18 1 29 0 36 6c8-3 18 1 19 9 8 0 10 11 3 15-6 3-11 1-16-1-10-5-17-3-29-3Z"/><path fill="#13AD83" d="M10 30c13-4 23-3 34 2 6 3 12 3 15 1 3 6-1 12-8 13-8 1-14-5-24-6-7 0-12 3-18 2-9-1-10-10 1-12Z"/><path fill="#087B66" d="M13 46c7-4 18-3 25 1 6 4 9 4 13 3-1 8-7 13-15 12-8 0-8-5-14-6-5-1-9 1-13-2-3-3-1-6 4-8Z"/></g></svg><b>temory</b><span>commented</span></div>
+                  <div class="c-body">
+                    <div class="c-title">temory · decisions behind this PR</div>
+                    <div class="c-sub">Team decisions followed</div>
+                    <div class="c-item" data-step><span>active customer = 90 days</span><span class="src">Slack #data-team</span></div>
+                    <div class="c-item" data-step><span>churn = no order in 90 days</span><span class="src">Confluence Churn metrics</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="copy">
+            <span class="n"><b>03</b>After merge</span>
+            <h3>Old PRs get flagged</h3>
+            <p>Each PR stays linked to the decisions it was built on. When one is replaced, temory flags the PR and tells its author. Think Dependabot, but for decisions.</p>
+          </div>
+          <div class="stage">
+            <div class="win" data-anim role="img" aria-label="Example: after a decision changes to 60 days, temory flags a merged pull request that was built on the old rule and notifies its author.">
+              <div class="win-head"><span class="pr-state merged">Merged</span><span class="win-title">#218 Add 90-day churn report</span></div>
+              <div class="win-body">
+                <div class="note-group" data-step>
+                  <div class="ng-t">🔁 Decision changed</div>
+                  <div class="ng-l"><span>now: active customer = <b>60 days</b></span><span class="src">Slack #data-team · Nov 12</span></div>
+                  <div class="ng-l dim"><span>replaces: 90 days</span></div>
+                </div>
+                <div class="flag" data-step>
+                  <div class="f-t">⚠ #218 was built on a replaced decision</div>
+                  <div class="f-l">"active customer = 90 days" is no longer current.</div>
+                  <div class="f-l dim">@author notified</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="who">
+    <div class="wrap">
+      <h2>Built for everyone who works with an agent</h2>
+      <div class="roles">
+        <div class="role"><span class="r-k">Engineers</span><h3>Code that follows the team's latest rules</h3><p>Your agent builds on current decisions, and every PR explains why.</p><span class="r-q">"Should this use the new retry policy?"</span></div>
+        <div class="role"><span class="r-k">PMs · PMO</span><h3>Know what changed without opening every tool</h3><p>Status changes, ticket updates and wiki edits come to your session as they land.</p><span class="r-q">"What changed on the launch since Monday?"</span></div>
+        <div class="role"><span class="r-k">Data teams</span><h3>One current definition for every metric</h3><p>Queries and reports use the definition your team agreed on most recently.</p><span class="r-q">"Active customer is 90 days now, right?"</span></div>
+        <div class="role"><span class="r-k">Business · Ops</span><h3>Drafts that match what the team agreed</h3><p>Plans, updates and docs start from current decisions, not old threads.</p><span class="r-q">"Write the Q4 update from current plans."</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="trust">
+    <div class="wrap">
+      <h2>Safe to try, and fits how you work</h2>
+      <p class="sub">temory works inside the tools, access and AI plan you already have.</p>
+    </div>
+    <div class="wrap facts">
+      <div class="fact"><span class="k">NO TEMORY SERVER</span><h3>Runs on your laptop</h3><p>Your team's data stays on your machine. temory has no server. Extraction runs through your own Claude Code or Codex, under your plan's existing data terms.</p></div>
+      <div class="fact"><span class="k">READ-ONLY</span><h3>Only reads your tools</h3><p>temory reads with the access you already have. It never posts, edits or deletes anything in them.</p></div>
+      <div class="fact"><span class="k">FITS YOUR SETUP</span><h3>Works where and how you work</h3><p>Your terminal, VS Code or the temory app. Personal or team plans, API keys or your cloud account.</p></div>
+    </div>
+  </section>
+
+  <section class="band" id="faq">
+    <div class="wrap">
+      <h2>Questions</h2>
+      <div class="faq">
+        <div class="qa"><h3>Is it free?</h3><p>Yes, for individuals during early access. Team plans come later.</p></div>
+        <div class="qa"><h3>What counts as a decision?</h3><p>Rules, definitions and choices your team agreed on in threads, tickets, docs and PRs. Each one keeps a link to where it was made.</p></div>
+        <div class="qa"><h3>What if temory gets one wrong?</h3><p>Nothing is deleted. You can open the source, and restore a decision that was replaced by mistake.</p></div>
+        <div class="qa"><h3>Do I need to change how I work?</h3><p>No. Keep using your agent as you do today. temory adds the team's decisions to it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="join">
+    <div class="wrap join">
+      <div>
+        <h2>Get early access</h2>
+        <div class="note">
+          <p>We're letting people in a few at a time so each team gets it working well. We read every answer.</p>
+          <ul>
+            <li>You'll get a setup guide within 3 weeks.</li>
+            <li>Paste the guide into your coding agent and it sets temory up for you.</li>
+            <li>Works with Claude Code or Codex, on macOS, Windows and Linux.</li>
+          </ul>
+        </div>
+      </div>
+
+      <form id="waitlist" novalidate>
+        <div>
+          <label for="email">Email <span class="hint">(work preferred)</span></label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+        </div>
+        <div>
+          <span class="lbl" id="size-l">Team size</span>
+          <div class="choices" role="radiogroup" aria-labelledby="size-l">
+            <label class="choice"><input type="radio" id="size-1" name="team_size" value="1-5"><span>1–5</span></label>
+            <label class="choice"><input type="radio" id="size-2" name="team_size" value="6-20"><span>6–20</span></label>
+            <label class="choice"><input type="radio" id="size-3" name="team_size" value="21-100"><span>21–100</span></label>
+            <label class="choice"><input type="radio" id="size-4" name="team_size" value="100+"><span>100+</span></label>
+          </div>
+        </div>
+        <div>
+          <span class="lbl" id="role-l">Your role</span>
+          <div class="choices" role="radiogroup" aria-labelledby="role-l">
+            <label class="choice"><input type="radio" id="r-0" name="role" value="Engineer"><span>Engineer</span></label>
+            <label class="choice"><input type="radio" id="r-1" name="role" value="PM / PMO"><span>PM / PMO</span></label>
+            <label class="choice"><input type="radio" id="r-2" name="role" value="Data"><span>Data</span></label>
+            <label class="choice"><input type="radio" id="r-3" name="role" value="Business / Ops"><span>Business / Ops</span></label>
+            <label class="choice"><input type="radio" id="r-4" name="role" value="Other"><span>Other</span></label>
+          </div>
+        </div>
+        <div>
+          <span class="lbl" id="agent-l">Which agent do you use?</span>
+          <div class="choices" role="radiogroup" aria-labelledby="agent-l">
+            <label class="choice"><input type="radio" id="a-0" name="agent" value="Claude Code"><span>Claude Code</span></label>
+            <label class="choice"><input type="radio" id="a-1" name="agent" value="Codex"><span>Codex</span></label>
+            <label class="choice"><input type="radio" id="a-2" name="agent" value="Both"><span>Both</span></label>
+            <label class="choice"><input type="radio" id="a-3" name="agent" value="Neither yet"><span>Neither yet</span></label>
+          </div>
+        </div>
+        <div>
+          <span class="lbl" id="tools-l">Where does your team decide things? <span class="hint">(pick all)</span></span>
+          <div class="choices" role="group" aria-labelledby="tools-l">
+            <label class="choice"><input type="checkbox" id="t-0" name="tools" value="Slack"><span>Slack</span></label>
+            <label class="choice"><input type="checkbox" id="t-1" name="tools" value="Jira"><span>Jira</span></label>
+            <label class="choice"><input type="checkbox" id="t-2" name="tools" value="Confluence"><span>Confluence</span></label>
+            <label class="choice"><input type="checkbox" id="t-3" name="tools" value="GitHub"><span>GitHub</span></label>
+            <label class="choice"><input type="checkbox" id="t-4" name="tools" value="Linear"><span>Linear</span></label>
+            <label class="choice"><input type="checkbox" id="t-5" name="tools" value="Notion"><span>Notion</span></label>
+            <label class="choice"><input type="checkbox" id="t-6" name="tools" value="Google Docs"><span>Google Docs</span></label>
+            <label class="choice"><input type="checkbox" id="t-7" name="tools" value="Gmail"><span>Gmail</span></label>
+            <label class="choice"><input type="checkbox" id="t-8" name="tools" value="Google Meet"><span>Google Meet</span></label>
+            <label class="choice"><input type="checkbox" id="t-9" name="tools" value="Microsoft Teams"><span>Microsoft Teams</span></label>
+            <label class="choice"><input type="checkbox" id="t-10" name="tools" value="GitLab"><span>GitLab</span></label>
+            <label class="choice"><input type="checkbox" id="t-11" name="tools" value="Other"><span>Other</span></label>
+          </div>
+        </div>
+        <div>
+          <label for="problem">What's the biggest problem with this today? <span class="hint">(optional)</span></label>
+          <textarea id="problem" name="problem" placeholder="e.g. My agent keeps using the old schema after we changed it in Slack"></textarea>
+        </div>
+        <div class="hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <div class="submit-row">
+          <button class="btn primary" type="submit" id="submit">Join the waitlist</button>
+          <span class="status" id="status" role="status" aria-live="polite"></span>
+        </div>
+        <p class="privacy">By joining, you agree to our <a href="privacy.html">privacy notice</a>. We'll only email you about temory, and you can ask us to delete your answers anytime.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap"><span>© 2026 temory</span><span><a href="privacy.html">Privacy</a> · temoryai@gmail.com</span></div>
+</footer>
+
+<script>
+// Sticky header: show a hairline once the page has scrolled.
+(function () {
+  const h = document.querySelector("header");
+  const on = () => h.classList.toggle("scrolled", scrollY > 8);
+  addEventListener("scroll", on, { passive: true });
+  on();
+})();
+
+// Section windows: each plays once when at least half of it scrolls into view, and again when it re-enters.
+(function () {
+  const wins = [...document.querySelectorAll("[data-anim]")];
+  if (!wins.length || !("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const STEP = 550;
+  function play(win) {
+    const steps = [...win.querySelectorAll("[data-step]")];
+    (win._t || []).forEach(clearTimeout);
+    win.classList.add("playing");
+    steps.forEach((el) => el.classList.remove("on"));
+    void win.offsetHeight;
+    win._t = steps.map((el, i) => setTimeout(() => el.classList.add("on"), 300 + i * STEP));
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) play(e.target); });
+  }, { threshold: 0.5 });
+  wins.forEach((w) => io.observe(w));
+})();
+
+// Hero chat: plays the exchange (~4 s), holds it for 5 s, fades, repeats. Hover pauses.
+(function () {
+  const chat = document.getElementById("chat");
+  if (!chat || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const body = document.getElementById("chat-body");
+  const items = [...chat.querySelectorAll("[data-at]")];
+  const ticks = [...chat.querySelectorAll("[data-tick]")];
+  const models = [...chat.querySelectorAll(".model")];
+  const at = { 1: 300, 2: 1000, 3: 2200, 4: 2500, 5: 3100, 6: 3900 };
+  const SHOW = 3900 + 5000, FADE = 450;
+  let round = 0, timers = [], paused = false, pending = false;
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  function play() {
+    timers.forEach(clearTimeout); timers = [];
+    chat.classList.add("reset");
+    const name = ["Claude Code", "Codex"][round++ % 2];
+    models.forEach((m) => (m.textContent = name));
+    chat.classList.add("playing");
+    items.forEach((el) => el.classList.remove("on"));
+    ticks.forEach((el) => el.classList.remove("ticked"));
+    void body.offsetHeight;
+    chat.classList.remove("reset");
+    body.classList.remove("fade");
+    models.forEach((m) => (m.style.opacity = ""));
+    items.forEach((el) => later(() => el.classList.add("on"), at[el.dataset.at]));
+    ticks.forEach((el) => later(() => el.classList.add("ticked"), at[el.dataset.tick]));
+    later(next, SHOW);
+  }
+  function next() {
+    if (round >= 3) return; // after three rounds, stay on the finished exchange
+    if (paused) { pending = true; return; }
+    body.classList.add("fade");
+    models.forEach((m) => (m.style.opacity = "0"));
+    later(play, FADE);
+  }
+  const resume = () => { paused = false; if (pending) { pending = false; next(); } };
+  chat.addEventListener("mouseenter", () => (paused = true));
+  chat.addEventListener("mouseleave", resume);
+  chat.addEventListener("click", () => (paused ? resume() : (paused = true)));
+  play();
+})();
+
+// Set this to the Google Apps Script web app URL (see plan/12 section 12) before going live.
+const WAITLIST_ENDPOINT = "https://script.google.com/macros/s/AKfycbwk0rIYO15PgG8Rtu6UI0FUzzszmtUUANTXMxW5IfLAniR1dnO8EWZx2eGQ_CiTOM6Iew/exec";
+
+// Visit tracking into the same sheet ("visits" tab). No cookies; a random id per page view.
+// On load: where the visit came from and what device. On leave: time on page, scroll depth, sections seen, CTA clicks, form use.
+const VISIT = (function () {
+  const on = WAITLIST_ENDPOINT.startsWith("https://script.google.com/");
+  const q = new URLSearchParams(location.search);
+  const id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  const start = Date.now();
+  const seen = new Set();
+  let maxScroll = 0, cta = 0, formStarted = false, signedUp = false, sent = false;
+  let first = "yes";
+  try { first = localStorage.getItem("temory_seen") ? "no" : "yes"; localStorage.setItem("temory_seen", "1"); } catch (e) {}
+  const post = (body) => {
+    if (!on) return;
+    const json = JSON.stringify(body);
+    if (navigator.sendBeacon && navigator.sendBeacon(WAITLIST_ENDPOINT, new Blob([json], { type: "text/plain;charset=utf-8" }))) return;
+    fetch(WAITLIST_ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: json, keepalive: true }).catch(() => {});
+  };
+  const w = innerWidth;
+  post({
+    type: "visit", visit_id: id, ref: q.get("ref") || "",
+    utm_source: q.get("utm_source") || "", utm_medium: q.get("utm_medium") || "", utm_campaign: q.get("utm_campaign") || "",
+    referrer: document.referrer || "", first,
+    timezone: (Intl.DateTimeFormat().resolvedOptions().timeZone) || "", language: navigator.language || "",
+    device: w < 700 ? "phone" : w < 1100 ? "tablet" : "desktop", width: String(w),
+  });
+  addEventListener("scroll", () => {
+    const h = document.documentElement.scrollHeight - innerHeight;
+    if (h > 0) maxScroll = Math.max(maxScroll, Math.round((scrollY / h) * 100));
+  }, { passive: true });
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) seen.add(e.target.id); }), { threshold: 0.3 });
+    ["hero", "how", "who", "trust", "faq", "join"].forEach((k) => { const el = document.getElementById(k); if (el) io.observe(el); });
+  }
+  document.querySelectorAll('a[href="#join"]').forEach((a) => a.addEventListener("click", () => cta++));
+  document.getElementById("waitlist").addEventListener("focusin", () => (formStarted = true));
+  function end() {
+    if (sent) return; sent = true;
+    post({
+      type: "visit_end", visit_id: id, seconds: String(Math.round((Date.now() - start) / 1000)),
+      max_scroll: String(maxScroll), sections: [...seen].join(" "), cta_clicks: String(cta),
+      form_started: formStarted ? "yes" : "no", signed_up: signedUp ? "yes" : "no",
+    });
+  }
+  addEventListener("pagehide", end);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") end(); });
+  return { id, markSignedUp: () => (signedUp = true) };
+})();
+
+const form = document.getElementById("waitlist");
+const statusEl = document.getElementById("status");
+const button = document.getElementById("submit");
+
+function show(msg, kind) {
+  statusEl.textContent = msg;
+  statusEl.className = "status" + (kind ? " " + kind : "");
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = form.email.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    show("Enter a valid email so we can send the setup guide.", "err");
+    form.email.focus();
+    return;
+  }
+  const data = {
+    email,
+    team_size: (form.querySelector('input[name="team_size"]:checked') || {}).value || "",
+    role: (form.querySelector('input[name="role"]:checked') || {}).value || "",
+    agent: (form.querySelector('input[name="agent"]:checked') || {}).value || "",
+    tools: [...form.querySelectorAll('input[name="tools"]:checked')].map((x) => x.value).join(", "),
+    problem: form.problem.value.trim(),
+    visit_id: VISIT.id,
+    ref: new URLSearchParams(location.search).get("ref") || "",
+    referrer: document.referrer || "",
+    website: form.website.value,
+  };
+  if (data.website) { form.reset(); show("You're on the list. We'll email you the setup guide.", "ok"); return; }
+  if (!WAITLIST_ENDPOINT) {
+    show("The waitlist isn't connected yet. Please try again soon.", "err");
+    return;
+  }
+  button.disabled = true;
+  show("Sending…");
+  try {
+    // Google Apps Script web apps don't answer CORS, so send as plain text and don't read the reply.
+    const google = WAITLIST_ENDPOINT.startsWith("https://script.google.com/");
+    const res = await fetch(WAITLIST_ENDPOINT, google
+      ? { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(data) }
+      : { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(data) });
+    if (!google && !res.ok) throw new Error(String(res.status));
+    form.reset();
+    VISIT.markSignedUp();
+    show("You're on the list. We'll email you the setup guide.", "ok");
+  } catch (err) {
+    show("Couldn't send that. Check your connection and try again.", "err");
+  } finally {
+    button.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
